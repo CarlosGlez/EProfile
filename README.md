@@ -4,6 +4,12 @@ Tarjeta de presentación digital para estudiantes: un sitio siempre
 actualizado con foto, carrera, reseña, currículum, proyectos y contacto,
 compartible con un enlace fijo y un código QR.
 
+Cada estudiante administra su propia EProfile desde un panel privado
+(borrador → previsualización → publicación), sin tocar código. Un
+administrador de plataforma crea las cuentas y puede apoyar en la edición
+de cualquier perfil. El CV se descarga en PDF con la misma información
+publicada, en 3 plantillas seleccionables.
+
 Proyecto integrador — Asignatura Nuevas Tecnologías.
 
 ## Stack

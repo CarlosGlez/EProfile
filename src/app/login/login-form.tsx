@@ -15,7 +15,7 @@ export default function LoginForm({ next }: { next: string }) {
     <form action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="next" value={next} />
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="text-sm font-medium text-zinc-700">
+        <label htmlFor="email" className="text-sm font-medium text-nm-heading">
           Correo
         </label>
         <input
@@ -24,14 +24,14 @@ export default function LoginForm({ next }: { next: string }) {
           type="email"
           required
           autoComplete="email"
-          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900"
+          className="nm-input rounded-xl border-0 px-3.5 py-2.5 text-sm text-nm-heading placeholder:text-nm-soft"
           placeholder="tu@correo.com"
         />
       </div>
       <div className="flex flex-col gap-1.5">
         <label
           htmlFor="password"
-          className="text-sm font-medium text-zinc-700"
+          className="text-sm font-medium text-nm-heading"
         >
           Contraseña
         </label>
@@ -41,13 +41,13 @@ export default function LoginForm({ next }: { next: string }) {
           type="password"
           required
           autoComplete="current-password"
-          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900"
+          className="nm-input rounded-xl border-0 px-3.5 py-2.5 text-sm text-nm-heading placeholder:text-nm-soft"
           placeholder="••••••••"
         />
       </div>
 
       {state.error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="animate-fade-up nm-inset rounded-xl px-3 py-2 text-sm text-nm-danger">
           {state.error}
         </p>
       )}
@@ -55,8 +55,11 @@ export default function LoginForm({ next }: { next: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-1 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+        className="nm-accent mt-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold disabled:opacity-60"
       >
+        {pending && (
+          <span className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin-slow" />
+        )}
         {pending ? "Entrando…" : "Entrar"}
       </button>
     </form>

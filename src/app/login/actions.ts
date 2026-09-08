@@ -24,6 +24,11 @@ export async function loginAction(
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
+    console.error("[login] Supabase signInWithPassword error:", {
+      message: error.message,
+      status: error.status,
+      code: (error as { code?: string }).code,
+    });
     return { error: "Correo o contraseña incorrectos." };
   }
 

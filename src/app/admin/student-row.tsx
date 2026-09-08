@@ -17,7 +17,13 @@ export interface StudentRowData {
   publishedAt: string | null;
 }
 
-export default function StudentRow({ row }: { row: StudentRowData }) {
+export default function StudentRow({
+  row,
+  index = 0,
+}: {
+  row: StudentRowData;
+  index?: number;
+}) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [resetting, setResetting] = useState(false);
@@ -69,82 +75,92 @@ export default function StudentRow({ row }: { row: StudentRowData }) {
   }
 
   return (
-    <tr className="border-b border-zinc-100 last:border-0">
-      <td className="px-4 py-3 font-medium text-zinc-900">
-        <Link href={`/${row.slug}`} target="_blank" className="hover:underline">
+    <tr
+      className="animate-fade-up align-top transition-opacity data-[pending=true]:opacity-50"
+      data-pending={isPending}
+      style={{ animationDelay: `${Math.min(index * 45, 300)}ms` }}
+    >
+      <td className="px-5 py-4 font-semibold text-nm-heading">
+        <Link
+          href={`/${row.slug}`}
+          target="_blank"
+          className="nm-press inline-block rounded-lg px-1 hover:text-nm-accent"
+        >
           {row.slug}
         </Link>
       </td>
-      <td className="px-4 py-3 text-zinc-600">{row.email || "—"}</td>
-      <td className="px-4 py-3">
+      <td className="px-5 py-4 text-nm-soft">{row.email || "—"}</td>
+      <td className="px-5 py-4">
         <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
-            row.status === "publicado"
-              ? "bg-emerald-50 text-emerald-700"
-              : "bg-amber-50 text-amber-700"
+          className={`inline-flex items-center gap-1.5 rounded-full nm-inset px-3 py-1 text-xs font-semibold ${
+            row.status === "publicado" ? "text-nm-ok" : "text-[#c98a1b]"
           }`}
         >
           {row.status === "publicado" ? "Publicado" : "Borrador"}
         </span>
       </td>
-      <td className="px-4 py-3">
+      <td className="px-5 py-4">
         <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
-            row.active ? "bg-zinc-100 text-zinc-700" : "bg-red-50 text-red-600"
+          className={`inline-flex items-center gap-1.5 rounded-full nm-inset px-3 py-1 text-xs font-semibold ${
+            row.active ? "text-nm-soft" : "text-nm-danger"
           }`}
         >
           {row.active ? "Activa" : "Desactivada"}
         </span>
       </td>
-      <td className="px-4 py-3">
+      <td className="px-5 py-4">
         <div className="flex flex-wrap items-center justify-end gap-2 text-xs">
           <Link
             href={`/${row.slug}/admin`}
-            className="font-medium text-zinc-700 underline"
+            className="nm-raised-sm nm-press rounded-lg px-2.5 py-1.5 font-semibold text-nm-heading"
           >
             Editar
           </Link>
           <button
             disabled={isPending}
             onClick={handleToggleActive}
-            className="font-medium text-zinc-700 underline disabled:opacity-50"
+            className="nm-raised-sm nm-press rounded-lg px-2.5 py-1.5 font-semibold text-nm-heading disabled:opacity-50"
           >
             {row.active ? "Desactivar" : "Reactivar"}
           </button>
           <button
             disabled={isPending}
             onClick={() => setResetting((r) => !r)}
-            className="font-medium text-zinc-700 underline disabled:opacity-50"
+            className="nm-raised-sm nm-press rounded-lg px-2.5 py-1.5 font-semibold text-nm-heading disabled:opacity-50"
           >
             Resetear contraseña
           </button>
           <button
             disabled={isPending}
             onClick={handleDelete}
-            className="font-medium text-red-600 underline disabled:opacity-50"
+            className="nm-raised-sm nm-press rounded-lg px-2.5 py-1.5 font-semibold text-nm-danger disabled:opacity-50"
           >
             Eliminar
           </button>
         </div>
         {resetting && (
-          <div className="mt-2 flex items-center gap-2">
+          <div className="animate-fade-up mt-3 flex items-center justify-end gap-2">
             <input
               type="text"
               placeholder="Nueva contraseña"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="rounded-lg border border-zinc-300 px-2 py-1 text-xs outline-none"
+              className="nm-input rounded-lg border-0 px-2.5 py-1.5 text-xs text-nm-heading placeholder:text-nm-soft"
             />
             <button
               onClick={handleResetPassword}
               disabled={isPending}
-              className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold text-white"
+              className="nm-accent rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-60"
             >
               Guardar
             </button>
           </div>
         )}
-        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+        {error && (
+          <p className="animate-fade-up mt-2 text-right text-xs text-nm-danger">
+            {error}
+          </p>
+        )}
       </td>
     </tr>
   );

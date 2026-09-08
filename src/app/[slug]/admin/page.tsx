@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionInfo } from "@/lib/auth";
 import { emptyProfileContent, type ProfileContent } from "@/types/profile";
+import LogoutButton from "@/components/logout-button";
 import ProfileEditor from "./profile-editor";
 
 export default async function StudentAdminPage({
@@ -41,27 +42,30 @@ export default async function StudentAdminPage({
   };
 
   return (
-    <div className="flex-1 bg-zinc-50">
+    <div className="flex-1">
       <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="animate-fade-up mb-6 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold text-zinc-900">
+            <h1 className="text-xl font-bold text-nm-heading">
               Panel de {slug}
             </h1>
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-nm-soft">
               {isAdmin && !isOwner
                 ? "Estás editando este perfil como administrador."
                 : "Edita tu información, guarda un borrador y publica cuando esté lista."}
             </p>
           </div>
-          <a
-            href={`/${slug}`}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-full border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100"
-          >
-            Ver EProfile pública ↗
-          </a>
+          <div className="flex flex-wrap items-center gap-2">
+            <a
+              href={`/${slug}`}
+              target="_blank"
+              rel="noreferrer"
+              className="nm-raised-sm nm-press rounded-2xl px-4 py-2 text-sm font-semibold text-nm-heading"
+            >
+              Ver EProfile pública ↗
+            </a>
+            <LogoutButton />
+          </div>
         </div>
 
         <ProfileEditor

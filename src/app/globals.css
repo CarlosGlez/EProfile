@@ -1,13 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Paleta neumórfica (soft UI) */
+  --nm-bg: #e6e9f0;
+  --nm-surface: #e9ecf3;
+  --nm-text: #3d4457;
+  --nm-text-soft: #7b8296;
+  --nm-heading: #2f3548;
+  --nm-shadow-dark: #c4cad8;
+  --nm-shadow-light: #ffffff;
+  --nm-accent: #6d5efc;
+  --nm-accent-2: #8b7bff;
+  --nm-danger: #e5484d;
+  --nm-ok: #17a673;
+
+  --background: var(--nm-bg);
+  --foreground: var(--nm-text);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--nm-bg);
+  --color-surface: var(--nm-surface);
+  --color-foreground: var(--nm-text);
+  --color-nm-soft: var(--nm-text-soft);
+  --color-nm-heading: var(--nm-heading);
+  --color-nm-accent: var(--nm-accent);
+  --color-nm-danger: var(--nm-danger);
+  --color-nm-ok: var(--nm-ok);
   --font-sans:
     system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
     sans-serif;
@@ -15,7 +34,230 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--nm-bg);
+  color: var(--nm-text);
   font-family: var(--font-sans);
+}
+
+/* ---------- Utilidades neumórficas ---------- */
+@layer utilities {
+  .nm-raised {
+    background: var(--nm-bg);
+    box-shadow:
+      9px 9px 20px var(--nm-shadow-dark),
+      -9px -9px 20px var(--nm-shadow-light);
+  }
+
+  .nm-raised-sm {
+    background: var(--nm-bg);
+    box-shadow:
+      5px 5px 12px var(--nm-shadow-dark),
+      -5px -5px 12px var(--nm-shadow-light);
+  }
+
+  .nm-inset {
+    background: var(--nm-bg);
+    box-shadow:
+      inset 4px 4px 9px var(--nm-shadow-dark),
+      inset -4px -4px 9px var(--nm-shadow-light);
+  }
+
+  /* Elemento presionable: reacciona al hover y se "hunde" al pulsar */
+  .nm-press {
+    transition:
+      box-shadow 0.22s ease,
+      transform 0.22s ease,
+      color 0.22s ease;
+  }
+  .nm-press:hover {
+    box-shadow:
+      6px 6px 14px var(--nm-shadow-dark),
+      -6px -6px 14px var(--nm-shadow-light);
+    transform: translateY(-1px);
+  }
+  .nm-press:active {
+    box-shadow:
+      inset 4px 4px 9px var(--nm-shadow-dark),
+      inset -4px -4px 9px var(--nm-shadow-light);
+    transform: translateY(0);
+  }
+
+  /* Botón de acción principal con acento de color */
+  .nm-accent {
+    background: linear-gradient(135deg, var(--nm-accent-2), var(--nm-accent));
+    color: #fff;
+    box-shadow:
+      6px 6px 14px rgba(109, 94, 252, 0.35),
+      -5px -5px 12px var(--nm-shadow-light);
+    transition:
+      box-shadow 0.22s ease,
+      transform 0.22s ease,
+      filter 0.22s ease;
+  }
+  .nm-accent:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+    box-shadow:
+      8px 8px 18px rgba(109, 94, 252, 0.4),
+      -5px -5px 12px var(--nm-shadow-light);
+  }
+  .nm-accent:active {
+    transform: translateY(0);
+    box-shadow: inset 3px 3px 8px rgba(60, 40, 160, 0.45);
+  }
+
+  .nm-input {
+    background: var(--nm-bg);
+    box-shadow:
+      inset 3px 3px 7px var(--nm-shadow-dark),
+      inset -3px -3px 7px var(--nm-shadow-light);
+    transition: box-shadow 0.22s ease;
+  }
+  .nm-input:focus {
+    outline: none;
+    box-shadow:
+      inset 3px 3px 7px var(--nm-shadow-dark),
+      inset -3px -3px 7px var(--nm-shadow-light),
+      0 0 0 2px var(--nm-accent);
+  }
+}
+
+/* ---------- Animaciones ---------- */
+@keyframes nm-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes nm-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes nm-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes nm-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes nm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes nm-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes nm-check {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes nm-ring {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+@keyframes nm-confetti {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -10px, 0) rotate(0deg);
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--nm-cx, 40px), 120px, 0) rotate(540deg);
+  }
+}
+
+@keyframes nm-blob {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(18px, -22px) scale(1.08);
+  }
+  66% {
+    transform: translate(-16px, 12px) scale(0.94);
+  }
+}
+
+@layer utilities {
+  .animate-fade-up {
+    animation: nm-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .animate-fade-in {
+    animation: nm-fade-in 0.5s ease both;
+  }
+  .animate-scale-in {
+    animation: nm-scale-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .animate-float {
+    animation: nm-float 4s ease-in-out infinite;
+  }
+  .animate-spin-slow {
+    animation: nm-spin 0.8s linear infinite;
+  }
+  .animate-pop {
+    animation: nm-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .animate-blob {
+    animation: nm-blob 14s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

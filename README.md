@@ -138,6 +138,9 @@ Ver la documentación completa y comentada en
 
 ## Extras añadidos (v2)
 
+- [x] **Portada rediseñada** con "cómo funciona" y un **directorio de
+      EProfiles publicadas** (foto, nombre, carrera y enlace), con buscador
+      cuando hay varias.
 - [x] **Compartir** desde la EProfile pública: copiar enlace, menú nativo
       del sistema (`navigator.share`), descargar el QR (PNG) e imprimir /
       guardar como PDF con hoja de estilos de impresión propia.

@@ -28,6 +28,18 @@ export default function StudentRow({
   const [error, setError] = useState<string | null>(null);
   const [resetting, setResetting] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopyLink() {
+    const url = `${window.location.origin}/${row.slug}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.prompt("Copia el enlace:", url);
+    }
+  }
 
   function handleToggleActive() {
     setError(null);
@@ -116,6 +128,12 @@ export default function StudentRow({
           >
             Editar
           </Link>
+          <button
+            onClick={handleCopyLink}
+            className="nm-raised-sm nm-press rounded-lg px-2.5 py-1.5 font-semibold text-nm-heading"
+          >
+            {copied ? "¡Copiado!" : "Copiar enlace"}
+          </button>
           <button
             disabled={isPending}
             onClick={handleToggleActive}

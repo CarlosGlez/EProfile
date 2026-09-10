@@ -203,7 +203,62 @@ create policy "Estudiantes actualizan su propia foto" on storage.objects
   );
 
 -- ----------------------------------------------------------------------------
--- 7. Seed: primer administrador de plataforma
+-- 7. Analítica básica: visitas a EProfiles publicadas
+-- ----------------------------------------------------------------------------
+-- Cada vez que un visitante abre /[slug] (perfil publicado de estudiante
+-- activo) se registra una fila. El estudiante ve el conteo en su panel; el
+-- público nunca ve estos datos. Si ya tenías la base creada, ejecuta solo
+-- este bloque para habilitar la función.
+create table if not exists public.profile_visits (
+  id bigint generated always as identity primary key,
+  student_id uuid not null references public.students (id) on delete cascade,
+  visited_at timestamptz not null default now(),
+  referrer text
+);
+
+create index if not exists profile_visits_student_idx
+  on public.profile_visits (student_id, visited_at desc);
+
+alter table public.profile_visits enable row level security;
+
+-- El estudiante lee sus propias visitas; el admin, todas. Nadie inserta a mano:
+-- la única vía es la función register_profile_visit de abajo.
+drop policy if exists profile_visits_select on public.profile_visits;
+create policy profile_visits_select on public.profile_visits
+  for select using (student_id = auth.uid() or public.is_admin());
+
+-- Registra una visita SOLO si el slug corresponde a un perfil publicado de un
+-- estudiante activo (mismos criterios que la vista public_profiles). Es
+-- SECURITY DEFINER para poder insertar sin exponer la tabla al público.
+create or replace function public.register_profile_visit(
+  p_slug text,
+  p_referrer text default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_student uuid;
+begin
+  select s.id into v_student
+  from public.students s
+  join public.profiles p on p.student_id = s.id
+  where s.slug = p_slug and s.active = true and p.status = 'publicado';
+
+  if v_student is not null then
+    insert into public.profile_visits (student_id, referrer)
+    values (v_student, nullif(left(p_referrer, 300), ''));
+  end if;
+end;
+$$;
+
+grant execute on function public.register_profile_visit(text, text)
+  to anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 8. Seed: primer administrador de plataforma
 -- ----------------------------------------------------------------------------
 -- 1) Crea el usuario admin desde el dashboard de Supabase
 --    (Authentication → Users → Add user), con correo y contraseña.

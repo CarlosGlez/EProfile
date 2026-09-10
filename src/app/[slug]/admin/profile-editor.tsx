@@ -1,15 +1,21 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { CvTemplate, ProfileContent } from "@/types/profile";
 import { isProfileComplete } from "@/types/profile";
-import { saveDraftAction, publishAction, uploadPhotoAction } from "./actions";
+import {
+  saveDraftAction,
+  publishAction,
+  uploadPhotoAction,
+  revertToPublishedAction,
+} from "./actions";
 import PublishSuccess from "./publish-success";
 
 type Props = {
   slug: string;
   initialContent: ProfileContent;
+  publishedContent: ProfileContent | null;
   status: "borrador" | "publicado";
   publishedAt: string | null;
 };
@@ -17,10 +23,12 @@ type Props = {
 export default function ProfileEditor({
   slug,
   initialContent,
+  publishedContent,
   status,
   publishedAt,
 }: Props) {
   const [content, setContent] = useState<ProfileContent>(initialContent);
+  const [savedContent, setSavedContent] = useState<ProfileContent>(initialContent);
   const [currentStatus, setCurrentStatus] = useState(status);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +36,22 @@ export default function ProfileEditor({
   const [uploading, setUploading] = useState(false);
   const [showPublished, setShowPublished] = useState(false);
   const router = useRouter();
+
+  const dirty = useMemo(
+    () => JSON.stringify(content) !== JSON.stringify(savedContent),
+    [content, savedContent]
+  );
+
+  // Avisar antes de salir si hay cambios sin guardar.
+  useEffect(() => {
+    if (!dirty) return;
+    function warn(e: BeforeUnloadEvent) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
 
   function update<K extends keyof ProfileContent>(key: K, value: ProfileContent[K]) {
     setContent((c) => ({ ...c, [key]: value }));
@@ -39,9 +63,31 @@ export default function ProfileEditor({
     startTransition(async () => {
       try {
         await saveDraftAction(slug, content);
+        setSavedContent(content);
         setMessage("Borrador guardado. Nadie en público lo ve todavía.");
       } catch (e) {
         setError(e instanceof Error ? e.message : "Error al guardar.");
+      }
+    });
+  }
+
+  function handleRevert() {
+    if (
+      !confirm(
+        "Descartar el borrador y volver a la última versión publicada. ¿Continuar?"
+      )
+    )
+      return;
+    setError(null);
+    setMessage(null);
+    startTransition(async () => {
+      try {
+        const { content: published } = await revertToPublishedAction(slug);
+        setContent(published);
+        setSavedContent(published);
+        setMessage("Borrador restaurado a la última versión publicada.");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Error al revertir.");
       }
     });
   }
@@ -52,6 +98,7 @@ export default function ProfileEditor({
     startTransition(async () => {
       try {
         await publishAction(slug, content);
+        setSavedContent(content);
         setCurrentStatus("publicado");
         setShowPublished(true);
       } catch (e) {
@@ -102,6 +149,12 @@ export default function ProfileEditor({
           <span className="text-xs text-nm-soft">
             · última publicación{" "}
             {new Date(publishedAt).toLocaleString("es-MX")}
+          </span>
+        )}
+        {dirty && (
+          <span className="ml-auto inline-flex items-center gap-1.5 rounded-full nm-inset px-3 py-1 text-xs font-semibold text-[#c98a1b]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#e0a021]" />
+            Cambios sin guardar
           </span>
         )}
       </div>
@@ -429,17 +482,35 @@ export default function ProfileEditor({
             : "Falta nombre y/o carrera para poder publicar."}
         </p>
         <div className="flex flex-wrap gap-2">
+          {publishedContent && dirty && (
+            <button
+              type="button"
+              onClick={handleRevert}
+              disabled={isPending}
+              className="nm-raised-sm nm-press rounded-xl px-4 py-2 text-sm font-semibold text-nm-danger disabled:opacity-60"
+            >
+              Descartar cambios
+            </button>
+          )}
           <button
             type="button"
             onClick={handleSaveDraft}
-            disabled={isPending}
+            disabled={isPending || !dirty}
             className="nm-raised-sm nm-press rounded-xl px-4 py-2 text-sm font-semibold text-nm-heading disabled:opacity-60"
           >
-            Guardar borrador
+            {dirty ? "Guardar borrador" : "Borrador guardado"}
           </button>
           <button
             type="button"
-            onClick={() => router.push(`/${slug}`)}
+            onClick={() => {
+              if (
+                !dirty ||
+                confirm(
+                  "Tienes cambios sin guardar; la vista previa muestra lo último guardado. ¿Continuar?"
+                )
+              )
+                router.push(`/${slug}`);
+            }}
             className="nm-raised-sm nm-press rounded-xl px-4 py-2 text-sm font-semibold text-nm-heading"
           >
             Previsualizar
@@ -522,6 +593,14 @@ function ListEditor<T>({
   renderItem: (item: T, onItemChange: (item: T) => void) => React.ReactNode;
   addLabel: string;
 }) {
+  function move(from: number, to: number) {
+    if (to < 0 || to >= items.length) return;
+    const next = [...items];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onChange(next);
+  }
+
   return (
     <div className="space-y-3">
       {items.map((item, i) => (
@@ -534,13 +613,37 @@ function ListEditor<T>({
             next[i] = updated;
             onChange(next);
           })}
-          <button
-            type="button"
-            onClick={() => onChange(items.filter((_, j) => j !== i))}
-            className="col-span-full justify-self-start text-xs font-semibold text-nm-danger hover:underline"
-          >
-            Eliminar
-          </button>
+          <div className="col-span-full flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => onChange(items.filter((_, j) => j !== i))}
+              className="text-xs font-semibold text-nm-danger hover:underline"
+            >
+              Eliminar
+            </button>
+            {items.length > 1 && (
+              <div className="ml-auto flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => move(i, i - 1)}
+                  disabled={i === 0}
+                  aria-label="Mover arriba"
+                  className="nm-raised-sm nm-press rounded-md px-2 py-0.5 text-xs font-bold text-nm-heading disabled:opacity-30"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  onClick={() => move(i, i + 1)}
+                  disabled={i === items.length - 1}
+                  aria-label="Mover abajo"
+                  className="nm-raised-sm nm-press rounded-md px-2 py-0.5 text-xs font-bold text-nm-heading disabled:opacity-30"
+                >
+                  ↓
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       ))}
       <button

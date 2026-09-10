@@ -4,12 +4,6 @@ Tarjeta de presentación digital para estudiantes: un sitio siempre
 actualizado con foto, carrera, reseña, currículum, proyectos y contacto,
 compartible con un enlace fijo y un código QR.
 
-Cada estudiante administra su propia EProfile desde un panel privado
-(borrador → previsualización → publicación), sin tocar código. Un
-administrador de plataforma crea las cuentas y puede apoyar en la edición
-de cualquier perfil. El CV se descarga en PDF con la misma información
-publicada, en 3 plantillas seleccionables.
-
 Proyecto integrador — Asignatura Nuevas Tecnologías.
 
 ## Stack
@@ -17,22 +11,30 @@ Proyecto integrador — Asignatura Nuevas Tecnologías.
 - **Next.js 16** (App Router, TypeScript, Tailwind CSS)
 - **Supabase** (Postgres + Auth + Storage) como base de datos
 - `@react-pdf/renderer` para generar el CV en PDF
-- `qrcode` para generar el código QR
+- `qrcode` para generar el código QR (PNG y SVG)
+- `next/og` para la imagen social (OpenGraph) de cada EProfile
+- `sitemap.xml` y `robots.txt` dinámicos para SEO
 
 ## 1. Configurar Supabase
 
 1. Crea un proyecto en [supabase.com](https://supabase.com).
 2. Ve a **SQL Editor** y ejecuta todo el contenido de
    [`supabase/schema.sql`](./supabase/schema.sql). Esto crea las tablas,
-   la vista pública, las políticas de seguridad (RLS) y el bucket de
-   almacenamiento para fotos de perfil.
+   la vista pública, las políticas de seguridad (RLS), la tabla y función
+   de analítica de visitas, y el bucket de almacenamiento para fotos de
+   perfil.
+
+   > Si ya tenías la base creada de una versión anterior, vuelve a correr
+   > el archivo completo (usa `create ... if not exists` / `create or
+   > replace`, así que es seguro) o al menos la **sección 7** para
+   > habilitar el conteo de visitas.
 3. Ve a **Authentication → Users → Add user** y crea la cuenta del primer
    administrador de plataforma (correo + contraseña).
 4. Copia el UUID de esa cuenta y en el SQL Editor ejecuta:
 
    ```sql
    insert into public.user_roles (user_id, role)
-   values ('UUID-DEL-ADMIN', 'admin_plataforma');
+   values ('72bf3388-8b53-4f6d-935c-06118413a7fe', 'admin_plataforma');
    ```
 
 5. En **Project Settings → API**, copia la `Project URL`, la `anon public
@@ -131,14 +133,41 @@ Ver la documentación completa y comentada en
 - [x] Panel de administrador: crear/desactivar/eliminar cuentas,
       resetear contraseña, listado con estado, editar cualquier perfil
 - [x] Tarjeta digital con QR a la ruta definitiva + descarga de contacto
-      (vCard)
+      (vCard con nombre estructurado, organización, foto y nota)
 - [x] Diseño responsive (celular, tableta, computadora)
+
+## Extras añadidos (v2)
+
+- [x] **Compartir** desde la EProfile pública: copiar enlace, menú nativo
+      del sistema (`navigator.share`), descargar el QR (PNG) e imprimir /
+      guardar como PDF con hoja de estilos de impresión propia.
+- [x] **Imagen social (OpenGraph)** generada por perfil: al pegar el
+      enlace en WhatsApp, LinkedIn, etc. se ve nombre, carrera e inicial.
+- [x] **Metadatos enriquecidos** (`og:*`, `twitter:*`, canonical) y
+      `sitemap.xml` con todas las EProfiles publicadas + `robots.txt`
+      que bloquea los paneles privados.
+- [x] **Analítica de visitas**: cada apertura de una EProfile publicada
+      se registra (función `register_profile_visit`, `SECURITY DEFINER`);
+      el estudiante ve el total y los últimos 7 / 30 días en su panel.
+- [x] **Cambio de contraseña autoservicio** para el estudiante desde su
+      panel (además del reinicio por parte del administrador).
+- [x] **Editor más seguro**: aviso de "cambios sin guardar" al salir,
+      botón para reordenar (↑/↓) cualquier elemento del CV/proyectos y
+      "Descartar cambios" para volver a la última versión publicada.
+- [x] **Panel de plataforma**: tarjetas de resumen (total, publicados,
+      borradores, desactivados), buscador por ruta/correo y botón para
+      copiar el enlace público de cada estudiante.
+- [x] Página **404** propia con el diseño de la plataforma.
 
 ## Limitaciones conocidas / próximos pasos
 
 - No hay compresión/optimización automática de imágenes al subir la
   foto de perfil (se sube tal cual, con límite de 4 MB).
-- No incluye recuperación de contraseña autoservicio para el estudiante
-  (la reinicia el administrador desde su panel).
+- La analítica de visitas cuenta cada carga de la página (incluye las del
+  propio estudiante al previsualizar y las de bots); no hay deduplicación
+  por sesión ni panel de gráficas todavía.
+- No incluye recuperación de contraseña por correo (sin sesión); el
+  estudiante la cambia desde su panel ya autenticado o la reinicia el
+  administrador.
 - No incluye respaldo/restauración automatizado de datos desde la UI
   (se puede hacer directamente desde el dashboard de Supabase).

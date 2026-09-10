@@ -1,20 +1,11 @@
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
-import type { ProfileContent } from "@/types/profile";
 import QrCode from "@/components/qr-code";
-
-async function getPublicProfile(slug: string) {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("public_profiles")
-    .select("slug, published, published_at")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  if (!data || !data.published) return null;
-  return data as { slug: string; published: ProfileContent; published_at: string };
-}
+import ShareBar from "./share-bar";
+import { getPublicProfile } from "@/lib/public-profile";
+import { getPublicProfileUrl } from "@/lib/site";
+import { registerVisit } from "@/lib/visits";
 
 export async function generateMetadata({
   params,
@@ -22,10 +13,17 @@ export async function generateMetadata({
   const { slug } = await params;
   const profile = await getPublicProfile(slug);
   if (!profile) return { title: "EProfile no encontrada" };
-  const { fullName, career } = profile.published;
+  const { fullName, career, bio } = profile.published;
+  const title = `${fullName || slug} · EProfile`;
+  const description =
+    bio?.trim() || career || "Tarjeta de presentación digital";
+  const url = getPublicProfileUrl(slug);
   return {
-    title: `${fullName || slug} · EProfile`,
-    description: career || "Tarjeta de presentación digital",
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, type: "profile" },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
@@ -36,6 +34,9 @@ export default async function PublicProfilePage({
   const profile = await getPublicProfile(slug);
 
   if (!profile) notFound();
+
+  const referrer = (await headers()).get("referer");
+  await registerVisit(slug, referrer);
 
   const p = profile.published;
   const hasCv =
@@ -118,6 +119,12 @@ export default async function PublicProfilePage({
               Guardar contacto
             </a>
           </div>
+
+          <ShareBar
+            slug={slug}
+            url={getPublicProfileUrl(slug)}
+            name={p.fullName || slug}
+          />
         </header>
 
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">

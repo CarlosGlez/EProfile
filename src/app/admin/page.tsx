@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import LogoutButton from "@/components/logout-button";
 import CreateStudentForm from "./create-student-form";
-import StudentRow from "./student-row";
+import StudentsPanel from "./students-panel";
 
 export default async function AdminPage() {
   const session = await getSessionInfo();
@@ -74,37 +74,10 @@ export default async function AdminPage() {
         </div>
 
         <div
-          className="animate-fade-up mt-8 overflow-hidden rounded-3xl nm-raised"
+          className="animate-fade-up mt-8"
           style={{ animationDelay: "140ms" }}
         >
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="text-xs uppercase tracking-wide text-nm-soft">
-                <tr>
-                  <th className="px-5 py-4">Ruta</th>
-                  <th className="px-5 py-4">Correo</th>
-                  <th className="px-5 py-4">Estado del perfil</th>
-                  <th className="px-5 py-4">Cuenta</th>
-                  <th className="px-5 py-4 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r, i) => (
-                  <StudentRow key={r.id} row={r} index={i} />
-                ))}
-                {rows.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-5 py-10 text-center text-sm text-nm-soft"
-                    >
-                      Aún no hay estudiantes registrados.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <StudentsPanel rows={rows} />
         </div>
       </div>
     </div>

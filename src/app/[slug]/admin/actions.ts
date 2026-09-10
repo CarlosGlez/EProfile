@@ -76,6 +76,60 @@ export async function publishAction(slug: string, content: ProfileContent) {
   return { ok: true };
 }
 
+export async function revertToPublishedAction(slug: string) {
+  const { supabase, studentId } = await authorizeStudentEdit(slug);
+
+  const { data: row } = await supabase
+    .from("profiles")
+    .select("published")
+    .eq("student_id", studentId)
+    .maybeSingle();
+
+  if (!row?.published) {
+    throw new Error("Todavía no hay una versión publicada a la cual volver.");
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ draft: row.published })
+    .eq("student_id", studentId);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/${slug}/admin`);
+  return { ok: true, content: row.published as ProfileContent };
+}
+
+// Cambio de contraseña autoservicio: SOLO el propio estudiante (no el admin
+// que está editando el perfil de otra persona).
+export async function changeOwnPasswordAction(slug: string, newPassword: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("No hay sesión activa.");
+
+  const { data: student } = await supabase
+    .from("students")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (!student || student.id !== user.id) {
+    throw new Error("Solo puedes cambiar tu propia contraseña.");
+  }
+
+  if (typeof newPassword !== "string" || newPassword.length < 8) {
+    throw new Error("La contraseña debe tener al menos 8 caracteres.");
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw new Error(error.message);
+
+  return { ok: true };
+}
+
 export async function uploadPhotoAction(slug: string, formData: FormData) {
   const { supabase, studentId } = await authorizeStudentEdit(slug);
 

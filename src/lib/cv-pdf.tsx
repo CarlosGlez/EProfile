@@ -1,5 +1,6 @@
 import { Document, Page, Text, View, StyleSheet, Font } from "@react-pdf/renderer";
 import type { ProfileContent } from "@/types/profile";
+import { githubLink, linkedinLink } from "@/lib/contact";
 
 // Tres plantillas simples (requisito opcional de punto extra): el
 // estudiante elige `cvTemplate` en su panel y el PDF se genera con ese
@@ -49,15 +50,17 @@ function Header({ p }: { p: ProfileContent }) {
 function ContactBlock({ p }: { p: ProfileContent }) {
   const c = p.contact;
   if (!c || (!c.email && !c.phone && !c.linkedin && !c.github)) return null;
+  const linkedin = c.linkedin ? linkedinLink(c.linkedin) : null;
+  const github = c.github ? githubLink(c.github) : null;
   return (
     <View style={{ marginBottom: 10 }}>
       {c.email ? <Text style={baseStyles.contactLine}>{c.email}</Text> : null}
       {c.phone ? <Text style={baseStyles.contactLine}>{c.phone}</Text> : null}
-      {c.linkedin ? (
-        <Text style={baseStyles.contactLine}>{c.linkedin}</Text>
+      {linkedin ? (
+        <Text style={baseStyles.contactLine}>{linkedin.label}</Text>
       ) : null}
-      {c.github ? (
-        <Text style={baseStyles.contactLine}>{c.github}</Text>
+      {github ? (
+        <Text style={baseStyles.contactLine}>{github.label}</Text>
       ) : null}
     </View>
   );

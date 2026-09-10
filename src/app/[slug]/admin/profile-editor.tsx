@@ -438,6 +438,8 @@ export default function ProfileEditor({
           <Field label="Correo">
             <input
               className="input"
+              type="email"
+              placeholder="tu@correo.com"
               value={content.contact.email}
               onChange={(e) =>
                 update("contact", { ...content.contact, email: e.target.value })
@@ -447,6 +449,8 @@ export default function ProfileEditor({
           <Field label="Teléfono">
             <input
               className="input"
+              type="tel"
+              placeholder="833 123 4567"
               value={content.contact.phone}
               onChange={(e) =>
                 update("contact", { ...content.contact, phone: e.target.value })
@@ -456,6 +460,7 @@ export default function ProfileEditor({
           <Field label="LinkedIn">
             <input
               className="input"
+              placeholder="tu-usuario o el enlace completo"
               value={content.contact.linkedin}
               onChange={(e) =>
                 update("contact", { ...content.contact, linkedin: e.target.value })
@@ -465,6 +470,7 @@ export default function ProfileEditor({
           <Field label="GitHub">
             <input
               className="input"
+              placeholder="tu-usuario o el enlace completo"
               value={content.contact.github}
               onChange={(e) =>
                 update("contact", { ...content.contact, github: e.target.value })
@@ -472,6 +478,10 @@ export default function ProfileEditor({
             />
           </Field>
         </div>
+        <p className="mt-2 text-xs text-nm-soft">
+          En LinkedIn y GitHub puedes escribir solo tu usuario; el enlace se
+          arma solo.
+        </p>
       </Card>
 
       {/* Acciones */}

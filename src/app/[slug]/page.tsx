@@ -6,6 +6,7 @@ import ShareBar from "./share-bar";
 import { getPublicProfile } from "@/lib/public-profile";
 import { getPublicProfileUrl } from "@/lib/site";
 import { registerVisit } from "@/lib/visits";
+import { githubLink, linkedinLink, telHref } from "@/lib/contact";
 
 export async function generateMetadata({
   params,
@@ -249,45 +250,72 @@ export default async function PublicProfilePage({
           <aside className="space-y-6">
             {hasContact && (
               <Section title="Contacto" delay={120}>
-                <ul className="space-y-2 text-sm">
-                  {p.contact.email && (
-                    <li>
-                      <a
-                        href={`mailto:${p.contact.email}`}
-                        className="text-nm-soft hover:text-nm-accent"
-                      >
-                        {p.contact.email}
-                      </a>
-                    </li>
-                  )}
-                  {p.contact.phone && (
-                    <li className="text-nm-soft">{p.contact.phone}</li>
-                  )}
-                  {p.contact.linkedin && (
-                    <li>
-                      <a
-                        href={p.contact.linkedin}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-nm-soft hover:text-nm-accent"
-                      >
-                        LinkedIn
-                      </a>
-                    </li>
-                  )}
-                  {p.contact.github && (
-                    <li>
-                      <a
-                        href={p.contact.github}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-nm-soft hover:text-nm-accent"
-                      >
-                        GitHub
-                      </a>
-                    </li>
-                  )}
-                </ul>
+                {(() => {
+                  const linkedin = p.contact.linkedin
+                    ? linkedinLink(p.contact.linkedin)
+                    : null;
+                  const github = p.contact.github
+                    ? githubLink(p.contact.github)
+                    : null;
+                  return (
+                    <ul className="space-y-2.5 text-sm">
+                      {p.contact.email && (
+                        <li>
+                          <a
+                            href={`mailto:${p.contact.email}`}
+                            className="block break-all text-nm-soft hover:text-nm-accent"
+                          >
+                            {p.contact.email}
+                          </a>
+                        </li>
+                      )}
+                      {p.contact.phone && (
+                        <li>
+                          <a
+                            href={telHref(p.contact.phone)}
+                            className="text-nm-soft hover:text-nm-accent"
+                          >
+                            {p.contact.phone}
+                          </a>
+                        </li>
+                      )}
+                      {linkedin && (
+                        <li>
+                          <a
+                            href={linkedin.href}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block text-nm-soft hover:text-nm-accent"
+                          >
+                            <span className="font-semibold text-nm-heading">
+                              LinkedIn
+                            </span>
+                            <span className="block break-all text-xs">
+                              {linkedin.label}
+                            </span>
+                          </a>
+                        </li>
+                      )}
+                      {github && (
+                        <li>
+                          <a
+                            href={github.href}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block text-nm-soft hover:text-nm-accent"
+                          >
+                            <span className="font-semibold text-nm-heading">
+                              GitHub
+                            </span>
+                            <span className="block break-all text-xs">
+                              {github.label}
+                            </span>
+                          </a>
+                        </li>
+                      )}
+                    </ul>
+                  );
+                })()}
               </Section>
             )}
 

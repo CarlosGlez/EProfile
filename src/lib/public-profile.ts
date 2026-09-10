@@ -43,3 +43,34 @@ export const listPublishedSlugs = cache(async (): Promise<
     .select("slug, published_at");
   return data ?? [];
 });
+
+export interface PublishedProfileCard {
+  slug: string;
+  fullName: string;
+  career: string;
+  photoUrl: string | null;
+  publishedAt: string | null;
+}
+
+// Directorio de EProfiles publicadas (para la portada). Devuelve solo los
+// campos que se muestran en la tarjeta, ordenados por publicación reciente.
+export const listPublishedProfiles = cache(async (): Promise<
+  PublishedProfileCard[]
+> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("public_profiles")
+    .select("slug, published, published_at")
+    .order("published_at", { ascending: false });
+
+  return (data ?? []).map((row) => {
+    const c = (row.published ?? {}) as Partial<ProfileContent>;
+    return {
+      slug: row.slug as string,
+      fullName: c.fullName?.trim() || (row.slug as string),
+      career: c.career?.trim() || "",
+      photoUrl: c.photoUrl ?? null,
+      publishedAt: (row.published_at as string | null) ?? null,
+    };
+  });
+});

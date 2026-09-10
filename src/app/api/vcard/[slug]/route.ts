@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getPublicProfileUrl } from "@/lib/site";
+import { githubLink, linkedinLink } from "@/lib/contact";
 import type { ProfileContent } from "@/types/profile";
 
 function escapeVCard(value: string) {
@@ -27,6 +28,9 @@ export async function GET(
 
   const p = data.published as ProfileContent;
 
+  const linkedin = p.contact?.linkedin ? linkedinLink(p.contact.linkedin) : null;
+  const github = p.contact?.github ? githubLink(p.contact.github) : null;
+
   const fullName = p.fullName || slug;
   const nameParts = fullName.trim().split(/\s+/);
   const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
@@ -42,8 +46,8 @@ export async function GET(
     p.contact?.email ? `EMAIL;TYPE=INTERNET:${escapeVCard(p.contact.email)}` : null,
     p.contact?.phone ? `TEL;TYPE=CELL:${escapeVCard(p.contact.phone)}` : null,
     `URL:${getPublicProfileUrl(slug)}`,
-    p.contact?.linkedin ? `URL:${escapeVCard(p.contact.linkedin)}` : null,
-    p.contact?.github ? `URL:${escapeVCard(p.contact.github)}` : null,
+    linkedin ? `URL;TYPE=LinkedIn:${escapeVCard(linkedin.href)}` : null,
+    github ? `URL;TYPE=GitHub:${escapeVCard(github.href)}` : null,
     p.photoUrl ? `PHOTO;VALUE=URI:${escapeVCard(p.photoUrl)}` : null,
     p.bio ? `NOTE:${escapeVCard(p.bio)}` : null,
     `REV:${new Date().toISOString()}`,
